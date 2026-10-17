@@ -175,6 +175,9 @@
 <label class="chkRow"><input id="chkOperations" type="checkbox"> إظهار الخطوط كاد</label>
 <label class="chkRow"><input id="chkConveyorRealism" type="checkbox" checked> إظهار الخطوط بواقعية</label>
 </details>
+<details id="equipmentPanel" style="margin-top:10px"><summary style="cursor:pointer">المعدات والحفارات (3D)</summary>
+<label class="chkRow"><input id="chkEquipAll" type="checkbox" checked> إظهار المعدات</label>
+<div id="equipFamilies"></div></details>
   <details id="realisticPanel"><summary>البيئة الواقعية</summary><label class="chkRow"><input type="checkbox" id="realisticToggle">تفعيل السماء والإضاءة الواقعية</label><div id="realisticSettings" hidden><label for="realisticLight">طابع الإضاءة</label><select id="realisticLight"><option value="day">نهار</option><option value="morning">صباح دافئ</option><option value="sunset">ألوان الغروب</option></select><label class="chkRow"><input type="checkbox" id="realisticClouds" checked>سحاب خفيف متحرك</label><button id="realisticTour">ابدأ الجولة المحفوظة</button><p>طابع لوني توضيحي مع اتجاه الشمس المسجل. يعمل على العرض الحالي؛ المقارنة تحتفظ بإضاءتها.</p></div></details><button id="directionsToggle" type="button" aria-pressed="false" style="width:100%;margin:8px 0">إظهار الاتجاهات</button><section id="proposalPanel" aria-label="المقترحات"><div id="proposalStages" aria-busy="false"><h2 style="grid-column:1/-1" dir="ltr">LINE 3 IBEX</h2><button type="button" class="proposalBtn" data-stage="ibex-1" aria-pressed="false" style="grid-column:1/-1" dir="ltr"><b>Stage 1</b></button><button type="button" class="proposalBtn" data-stage="ibex-2" aria-pressed="false" style="grid-column:1/-1" dir="ltr"><b>Stage 2</b></button><button type="button" class="proposalBtn" data-stage="ibex-3" aria-pressed="false" style="grid-column:1/-1" dir="ltr"><b>Stage 3</b></button></div><div id="proposalStatus" role="status" aria-live="polite">اختر مرحلة للعرض</div><div id="proposalLegend" hidden></div></section><h2>خيارات العرض</h2>
   <div id="controls">
     <button id="btnWire">شبكة سلكية</button>
@@ -2502,6 +2505,485 @@ drapeCurrentOverlay(finalCadRoadGroup,.4);drapeCurrentOverlay(lakeGroup,.45);dra
 let peakBest=-1,peakDistance=Infinity;
 for(let k=0;k<N;k++)if(maskCurrent[k]&&elevCurrentRaw[k]>=STATS.current_zmax-.1){const ix=k%NX,iy=Math.floor(k/NX),x=XMIN+ix*(XMAX-XMIN)/(NX-1)-CX,z=CY-(YMIN+iy*(YMAX-YMIN)/(NY-1)),d=(x-currentPeakPoint.x)**2+(z-currentPeakPoint.z)**2;if(d<peakDistance){peakDistance=d;peakBest=k;}}
 if(peakBest>=0){const ix=peakBest%NX,iy=Math.floor(peakBest/NX),p=new THREE.Vector3(XMIN+ix*(XMAX-XMIN)/(NX-1)-CX,elevCurrentRaw[peakBest]+.6,CY-(YMIN+iy*(YMAX-YMIN)/(NY-1)));currentPeakMark.position.copy(p).sub(currentPeakPoint);}
+
+
+// ======================================================================
+// المعدات والحفارات — محوّلة من معدات_وحفارات.dxf (مساقط أفقية → نماذج ثلاثية الأبعاد)
+// الإحداثيات X/Y من الـ DXF كما هي، أما المنسوب Z فيُؤخذ من سطح السرفاي الحالي (وليس من الـ DXF).
+// ======================================================================
+const EQUIPMENT_DATA=[{"t":"tail","E":217087.461,"N":2525515.412,"rot":274.182,"mx":1,"my":1},{"t":"tail","E":218504.957,"N":2525763.76,"rot":298.376,"mx":1,"my":1},{"t":"tail","E":219505.056,"N":2525598.831,"rot":352.768,"mx":1,"my":1},{"t":"truss","E":218294.847,"N":2526176.841,"rot":118.262,"mx":-1,"my":1,"b":[-22.41,-10.8,6.37,11.09]},{"t":"truss","E":218288.657,"N":2526185.508,"rot":118.262,"mx":-1,"my":1,"b":[-23.59,-11.7,5.05,9.73]},{"t":"head","E":218259.75,"N":2526232.461,"rot":118.262,"mx":-1,"my":1,"x0":0.0,"x1":31.4},{"t":"truss","E":218483.607,"N":2525731.162,"rot":173.237,"mx":-1,"my":1,"b":[-22.41,-10.8,6.37,11.09]},{"t":"truss","E":218472.956,"N":2525731.067,"rot":173.237,"mx":-1,"my":1,"b":[-23.59,-11.7,5.05,9.73]},{"t":"head","E":218417.916,"N":2525734.343,"rot":173.237,"mx":-1,"my":1,"x0":0.0,"x1":31.4},{"t":"truss","E":219753.357,"N":2525621.561,"rot":174.742,"mx":-1,"my":1,"b":[-22.41,-10.8,6.37,11.09]},{"t":"truss","E":219742.713,"N":2525621.186,"rot":174.742,"mx":-1,"my":1,"b":[-23.59,-11.7,5.05,9.73]},{"t":"head","E":219687.605,"N":2525623.016,"rot":174.742,"mx":-1,"my":1,"x0":0.0,"x1":31.4},{"t":"tail","E":219682.308,"N":2525617.068,"rot":353.563,"mx":1,"my":1},{"t":"bridge","E":216631.099,"N":2525338.131,"rot":309.763,"mx":1,"my":1},{"t":"spreader","E":216605.515,"N":2525368.876,"rot":263.331,"mx":1,"my":1},{"t":"truss","E":219765.114,"N":2525620.5,"rot":174.742,"mx":-1,"my":1,"b":[-22.41,-10.8,6.37,11.09]},{"t":"truss","E":217075.602,"N":2525446.458,"rot":68.643,"mx":-1,"my":1,"b":[-22.41,-10.8,6.37,11.09]},{"t":"truss","E":217078.193,"N":2525456.789,"rot":68.643,"mx":-1,"my":1,"b":[-23.59,-11.7,5.05,9.73]},{"t":"head","E":217095.232,"N":2525509.228,"rot":68.643,"mx":-1,"my":1,"x0":0.0,"x1":31.4},{"t":"tail","E":216904.376,"N":2525040.096,"rot":248.595,"mx":1,"my":1},{"t":"truss","E":216924.707,"N":2524972.321,"rot":101.156,"mx":-1,"my":1,"b":[-22.41,-10.8,6.37,11.09]},{"t":"truss","E":216921.282,"N":2524982.45,"rot":101.156,"mx":-1,"my":1,"b":[-23.59,-11.7,5.05,9.73]},{"t":"head","E":216907.501,"N":2525035.791,"rot":101.156,"mx":-1,"my":1,"x0":0.0,"x1":31.4},{"t":"tail","E":215712.021,"N":2524689.086,"rot":199.314,"mx":1,"my":1},{"t":"truss","E":219565.398,"N":2525564.849,"rot":138.188,"mx":-1,"my":1,"b":[-22.41,-10.8,6.37,11.09]},{"t":"truss","E":219556.564,"N":2525570.872,"rot":138.188,"mx":-1,"my":1,"b":[-23.59,-11.7,5.05,9.73]},{"t":"head","E":219513.437,"N":2525605.155,"rot":138.188,"mx":-1,"my":1,"x0":0.0,"x1":31.4},{"t":"head","E":220476.703,"N":2525575.205,"rot":264.761,"mx":1,"my":1,"x0":12.1,"x1":31.15},{"t":"truss","E":220474.585,"N":2525587.149,"rot":264.761,"mx":-1,"my":1,"b":[-23.59,-11.7,5.05,9.73]},{"t":"head","E":221027.628,"N":2525525.066,"rot":255.513,"mx":1,"my":1,"x0":12.1,"x1":31.15},{"t":"truss","E":221027.456,"N":2525537.195,"rot":255.513,"mx":-1,"my":1,"b":[-23.59,-11.7,5.05,9.73]},{"t":"truss","E":218574.099,"N":2525759.706,"rot":173.237,"mx":-1,"my":1,"b":[-22.41,-10.8,6.37,11.09]},{"t":"truss","E":218563.448,"N":2525759.611,"rot":173.237,"mx":-1,"my":1,"b":[-23.59,-11.7,5.05,9.73]},{"t":"head","E":218508.408,"N":2525762.888,"rot":173.237,"mx":-1,"my":1,"x0":0.0,"x1":31.4},{"t":"truss","E":218585.309,"N":2525758.377,"rot":173.237,"mx":-1,"my":1,"b":[-22.41,-10.8,6.37,11.09]},{"t":"tail","E":218249.624,"N":2526228.29,"rot":340.857,"mx":1,"my":1},{"t":"truss","E":216527.826,"N":2524963.493,"rot":19.334,"mx":-1,"my":1,"b":[-22.41,-10.8,6.37,11.09]},{"t":"truss","E":216537.365,"N":2524968.324,"rot":19.334,"mx":-1,"my":1,"b":[-23.59,-11.7,5.05,9.73]},{"t":"head","E":216588.203,"N":2524989.552,"rot":19.334,"mx":-1,"my":1,"x0":0.0,"x1":31.4},{"t":"tail","E":216582.983,"N":2525000.204,"rot":261.907,"mx":1,"my":1},{"t":"tripper","E":216634.134,"N":2525334.482,"rot":261.535,"mx":1,"my":1},{"t":"station","E":216766.164,"N":2523830.123,"rot":7.742,"mx":1,"my":1},{"t":"tail","E":216784.853,"N":2523842.795,"rot":230.441,"mx":1,"my":1},{"t":"station","E":217094.79,"N":2524207.328,"rot":55.006,"mx":1,"my":1},{"t":"tail","E":217099.983,"N":2524230.273,"rot":263.339,"mx":1,"my":1},{"t":"tail","E":217181.077,"N":2524886.651,"rot":231.145,"mx":1,"my":1},{"t":"truss","E":215695.384,"N":2524621.711,"rot":72.564,"mx":-1,"my":1,"b":[-22.41,-10.8,6.37,11.09]},{"t":"truss","E":215697.225,"N":2524632.244,"rot":72.564,"mx":-1,"my":1,"b":[-23.59,-11.7,5.05,9.73]},{"t":"head","E":215710.652,"N":2524685.675,"rot":72.564,"mx":-1,"my":1,"x0":0.0,"x1":31.4},{"t":"truss","E":215692.152,"N":2524611.658,"rot":72.44,"mx":-1,"my":1,"b":[-22.41,-10.8,6.37,11.09]},{"t":"bridge","E":217061.561,"N":2525879.504,"rot":169.491,"mx":-1,"my":1},{"t":"spreader","E":217022.238,"N":2525886.831,"rot":349.603,"mx":1,"my":1},{"t":"tripper","E":217062.698,"N":2525879.294,"rot":274.268,"mx":1,"my":1},{"t":"truss","E":217083.94,"N":2524187.675,"rot":50.482,"mx":-1,"my":1,"b":[-22.41,-10.8,6.37,11.09]},{"t":"tail","E":218158.597,"N":2526109.326,"rot":340.283,"mx":1,"my":1},{"t":"truss","E":218208.958,"N":2526061.048,"rot":123.832,"mx":-1,"my":1,"b":[-22.41,-10.8,6.37,11.09]},{"t":"truss","E":218201.956,"N":2526069.074,"rot":123.832,"mx":-1,"my":1,"b":[-23.59,-11.7,5.05,9.73]},{"t":"head","E":218168.298,"N":2526113.629,"rot":123.747,"mx":-1,"my":1,"x0":0.0,"x1":31.4},{"t":"truss","E":218215.423,"N":2526051.402,"rot":123.832,"mx":-1,"my":1,"b":[-22.41,-10.8,6.37,11.09]},{"t":"spreader","E":217898.891,"N":2526242.194,"rot":268.559,"mx":1,"my":1},{"t":"bridge","E":217912.351,"N":2526204.528,"rot":289.664,"mx":1,"my":1},{"t":"tripper","E":217913.947,"N":2526200.059,"rot":340.251,"mx":1,"my":1},{"t":"tail","E":221047.331,"N":2525491.943,"rot":354.787,"mx":1,"my":1},{"t":"tail","E":218413.997,"N":2525734.674,"rot":303.693,"mx":1,"my":1},{"t":"bridge","E":218066.988,"N":2526296.642,"rot":314.209,"mx":1,"my":1},{"t":"tripper","E":218070.297,"N":2526293.24,"rot":341.065,"mx":1,"my":1},{"t":"spreader","E":218038.348,"N":2526326.084,"rot":265.6,"mx":1,"my":1},{"t":"takeup","E":217400.34,"N":2525415.286,"rot":90.12,"mx":1,"my":1},{"t":"spreader","E":218437.819,"N":2524588.901,"rot":88.036,"mx":1,"my":1},{"t":"spreader","E":218414.769,"N":2524588.643,"rot":88.036,"mx":1,"my":1},{"t":"spreader","E":218343.546,"N":2524589.938,"rot":88.036,"mx":1,"my":1},{"t":"spreader","E":216862.4,"N":2524910.914,"rot":88.036,"mx":1,"my":1},{"t":"takeup","E":217777.966,"N":2525846.317,"rot":170.616,"mx":1,"my":1},{"t":"truss","E":217178.818,"N":2524808.896,"rot":83.182,"mx":-1,"my":1,"b":[-22.41,-10.8,6.37,11.09]},{"t":"truss","E":217178.686,"N":2524819.587,"rot":83.182,"mx":-1,"my":1,"b":[-23.59,-11.7,5.05,9.73]},{"t":"head","E":217182.038,"N":2524874.578,"rot":83.182,"mx":-1,"my":1,"x0":0.0,"x1":31.4}];
+function buildEquipment(env){
+const THREE=env.THREE, CX=env.CX, CY=env.CY, ground=env.ground, DATA=env.data;
+const DEG=Math.PI/180;
+const mk=(c,o={})=>new THREE.MeshStandardMaterial(Object.assign({color:c,roughness:.72,metalness:.28,side:THREE.DoubleSide},o));
+const M={
+ yellow:mk(0xd9a41e), yellowD:mk(0xb98512), grey:mk(0x8d9297), light:mk(0xc3c7ca), dark:mk(0x2b2e31),
+ belt:mk(0x151515,{roughness:.9,metalness:.05}), conc:mk(0x8a867f,{roughness:.95,metalness:0}),
+ blue:mk(0x4b7aa8), steel:mk(0x6f7e8b), red:mk(0xb23b2b), glass:mk(0x4c7a90,{transparent:true,opacity:.7,metalness:.6,roughness:.2}),
+ green:mk(0x4c8a5a), rail:mk(0x555a5e,{metalness:.6})
+};
+// ---------- merged-geometry builder: coordinates are (lx, height, ly) in the block-local frame ----------
+function MergeBuilder(){
+ const buckets=new Map();
+ const _p=new THREE.Vector3(),_s=new THREE.Vector3(),_q=new THREE.Quaternion(),_M=new THREE.Matrix4(),_N=new THREE.Matrix3(),_v=new THREE.Vector3();
+ const boxG=new THREE.BoxGeometry(1,1,1), cylG=new THREE.CylinderGeometry(1,1,1,14,1,false), frG=new THREE.CylinderGeometry(1,.55,1,4,1,false);
+ const UP=new THREE.Vector3(0,1,0),V=(a)=>new THREE.Vector3(a[0],a[1],-a[2]);
+ function put(mat,geo,M4){
+  let b=buckets.get(mat);if(!b){b={pos:[],nor:[],idx:[],n:0};buckets.set(mat,b);}
+  const pa=geo.attributes.position,na=geo.attributes.normal;_N.getNormalMatrix(M4);
+  for(let i=0;i<pa.count;i++){
+   _v.fromBufferAttribute(pa,i).applyMatrix4(M4);b.pos.push(_v.x,_v.y,_v.z);
+   _v.fromBufferAttribute(na,i).applyMatrix3(_N).normalize();b.nor.push(_v.x,_v.y,_v.z);
+  }
+  const ix=geo.index.array;for(let i=0;i<ix.length;i++)b.idx.push(ix[i]+b.n);b.n+=pa.count;
+ }
+ const api={
+  box(lx,h,ly,sx,sh,sy,mat){_p.set(lx,h,-ly);_s.set(sx,sh,sy);_q.identity();_M.compose(_p,_q,_s);put(mat,boxG,_M);},
+  beam(a,b,w,t,mat){
+   const A=V(a),B=V(b),d=B.clone().sub(A),L=d.length();if(L<1e-6)return;const x=d.clone().divideScalar(L);
+   let up=UP;if(Math.abs(x.y)>.98)up=new THREE.Vector3(1,0,0);
+   const z=new THREE.Vector3().crossVectors(x,up).normalize(),y=new THREE.Vector3().crossVectors(z,x).normalize();
+   const R=new THREE.Matrix4().makeBasis(x,y,z);_q.setFromRotationMatrix(R);
+   _p.copy(A).add(B).multiplyScalar(.5);_s.set(L,t,w);_M.compose(_p,_q,_s);put(mat,boxG,_M);
+  },
+  cyl(a,b,r,mat){
+   const A=V(a),B=V(b),d=B.clone().sub(A),L=d.length();if(L<1e-6)return;
+   _q.setFromUnitVectors(UP,d.clone().divideScalar(L));_p.copy(A).add(B).multiplyScalar(.5);_s.set(r,L,r);_M.compose(_p,_q,_s);put(mat,cylG,_M);
+  },
+  frust(lx,h,ly,r,hg,mat){ // 4-sided funnel, wide at top
+   _p.set(lx,h,-ly);_q.setFromAxisAngle(UP,Math.PI/4);_s.set(r,hg,r);_M.compose(_p,_q,_s);put(mat,frG,_M);
+  },
+  build(group){
+   for(const [mat,b] of buckets){
+    const g=new THREE.BufferGeometry();
+    g.setAttribute('position',new THREE.Float32BufferAttribute(b.pos,3));
+    g.setAttribute('normal',new THREE.Float32BufferAttribute(b.nor,3));
+    g.setIndex(b.n>65535?new THREE.Uint32BufferAttribute(b.idx,1):new THREE.Uint16BufferAttribute(b.idx,1));
+    g.computeBoundingSphere();
+    const m=new THREE.Mesh(g,mat);m.castShadow=true;m.receiveShadow=true;group.add(m);
+   }
+  }
+ };
+ return api;
+}
+// ---------- lattice box-truss between two bottom-centreline points ----------
+function trussBox(B,A,E,w,d,seg,mat,planX){
+ const dx=E[0]-A[0],dy=E[2]-A[2],Lp=Math.hypot(dx,dy),ux=dx/Lp,uy=dy/Lp,nx=-uy,ny=ux,hw=w/2;
+ const n=Math.max(2,Math.round(Lp/seg));
+ const P=(i,t,hh)=>{const f=i/n;return[A[0]+dx*f+nx*t,A[1]+(E[1]-A[1])*f+hh,A[2]+dy*f+ny*t];};
+ for(const sg of [-1,1]){
+  B.beam(P(0,sg*hw,0),P(n,sg*hw,0),.28,.28,mat);
+  B.beam(P(0,sg*hw,d),P(n,sg*hw,d),.24,.24,mat);
+  for(let i=0;i<=n;i++){
+   B.beam(P(i,sg*hw,0),P(i,sg*hw,d),.16,.16,mat);
+   if(i<n)B.beam(P(i,sg*hw,i%2?d:0),P(i+1,sg*hw,i%2?0:d),.14,.14,mat);
+  }
+ }
+ for(let i=0;i<=n;i++){
+  B.beam(P(i,-hw,0),P(i,hw,0),.2,.2,mat);
+  if(i%2===0)B.beam(P(i,-hw,d),P(i,hw,d),.16,.16,mat);
+ }
+ if(planX)for(let i=0;i<n;i++){
+  B.beam(P(i,-hw,d),P(i+1,hw,d),.12,.12,mat);B.beam(P(i,hw,d),P(i+1,-hw,d),.12,.12,mat);
+  B.beam(P(i,-hw,0),P(i+1,hw,0),.12,.12,mat);B.beam(P(i,hw,0),P(i+1,-hw,0),.12,.12,mat);
+ }
+ return {P,n,Lp};
+}
+// ---------- elevated conveyor gallery on terrain-seated legs ----------
+function gallery(B,cx,o){
+ const dx=o.bx-o.ax,dy=o.by-o.ay,L=Math.hypot(dx,dy),ux=dx/L,uy=dy/L,nx=-uy,ny=ux,hw=o.w/2;
+ const Q=(s,t,h)=>[o.ax+ux*s+nx*t,h,o.ay+uy*s+ny*t];
+ trussBox(B,Q(0,0,o.hd),Q(L,0,o.hd),o.w,o.d,o.seg||2.4,o.mat||M.steel,o.planX);
+ B.beam(Q(0,0,o.hd+.1),Q(L,0,o.hd+.1),o.w,.08,M.grey);                         // deck plate
+ if(o.belt!==false){B.beam(Q(.2,0,o.hd+.32),Q(L-.2,0,o.hd+.32),o.beltW||1.8,.2,M.belt);
+  for(let s=1;s<L;s+=3)B.beam(Q(s,-(o.beltW||1.8)/2,o.hd+.2),Q(s,(o.beltW||1.8)/2,o.hd+.2),.14,.14,M.light);}
+ if(o.cover)for(const [s0,s1] of o.cover){B.beam(Q(s0,0,o.hd+.95),Q(s1,0,o.hd+.95),(o.beltW||1.8)+.5,.1,M.light);
+  B.beam(Q(s0,-(o.beltW||1.8)/2-.2,o.hd+.65),Q(s1,-(o.beltW||1.8)/2-.2,o.hd+.65),.08,.6,M.light);
+  B.beam(Q(s0,(o.beltW||1.8)/2+.2,o.hd+.65),Q(s1,(o.beltW||1.8)/2+.2,o.hd+.65),.08,.6,M.light);}
+ for(const sg of (o.walk===false?[]:o.walk||[-1,1])){
+  const t=sg*(hw+.55);B.beam(Q(0,t,o.hd+.14),Q(L,t,o.hd+.14),1.0,.07,M.light);
+  const tr=sg*(hw+1.0);B.beam(Q(0,tr,o.hd+1.1),Q(L,tr,o.hd+1.1),.05,.05,M.yellowD);B.beam(Q(0,tr,o.hd+.62),Q(L,tr,o.hd+.62),.04,.04,M.yellowD);
+  for(let s=0;s<=L+.01;s+=2)B.beam(Q(s,tr,o.hd+.1),Q(s,tr,o.hd+1.1),.05,.05,M.yellowD);
+ }
+ // portal legs seated on the survey surface
+ const m=Math.max(1,Math.round(L/(o.legEvery||10)));
+ for(let k=0;k<=m;k++){
+  const s=k*L/m,lowTop=o.hd;let gl=[];
+  for(const sg of [-1,1]){
+   const q=Q(s,sg*hw,0),w=cx.W(q[0],q[2]),g=ground(w[0],w[1])-cx.Yb;gl.push(g);
+   const bot=Math.min(g,o.hd-.4)-.25;
+   B.beam([q[0],bot,q[2]],[q[0],lowTop,q[2]],.42,.42,o.legMat||M.blue);
+   B.box(q[0],bot,q[2],1.0,.3,1.0,M.conc);
+  }
+  const mid=(gl[0]+gl[1])/2;
+  const a0=Q(s,-hw,0),a1=Q(s,hw,0);
+  const tb=Math.max(mid+.6,(o.hd+Math.min(gl[0],gl[1]))/2);
+  B.beam([a0[0],tb,a0[2]],[a1[0],tb,a1[2]],.2,.2,M.steel);
+  if(o.hd-Math.min(gl[0],gl[1])>1.4){B.beam([a0[0],Math.min(gl[0],gl[1])-.1,a0[2]],[a1[0],tb,a1[2]],.12,.12,M.steel);B.beam([a1[0],Math.min(gl[0],gl[1])-.1,a1[2]],[a0[0],tb,a0[2]],.12,.12,M.steel);}
+ }
+ return {Q,L};
+}
+// =====================================================================
+//                       FAMILY BUILDERS
+// =====================================================================
+function bSpreader(B,it,cx){
+ const Y=M.yellow,G=M.grey,D=M.dark,C=M.conc;
+ // crawler tracks (two) — seated on survey surface
+ for(const s of [-1,1]){
+  const ly=s*5.0;
+  B.box(0,1.1,ly,13,4.2,2.8,D);B.box(0,3.3,ly,12.4,.3,2.5,G);
+  for(const e of [-1,1])B.cyl([e*5.7,1.7,ly-1.45],[e*5.7,1.7,ly+1.45],1.65,M.dark);
+  for(const sd of [-1,1])B.box(0,.9,ly+sd*1.42,13,1.2,.12,G);
+  for(let k=-5;k<=5;k+=2.5)B.cyl([k,1.0,ly-1.46],[k,1.0,ly+1.46],.75,G);
+ }
+ // portal deck + slew ring
+ B.box(-.9,4.0,0,7.2,1.2,12.8,Y);for(const x of [-3.9,2.1])B.box(x,3.6,0,.5,.6,12.8,M.yellowD);
+ B.cyl([0,4.6,0],[0,5.9,0],2.15,D);
+ // superstructure deck, frames
+ B.box(10.1,6.05,0,27.6,.5,12.8,G);
+ for(const ly of [-5.9,-2,2,5.9])B.box(10.1,5.5,ly,27.6,.7,.6,Y);
+ for(let x=-3;x<=23;x+=4)B.box(x,5.5,0,.5,.6,12.4,M.yellowD);
+ // machine house + cab
+ B.box(2.6,7.6,0,10.6,2.7,6.0,Y);B.box(2.6,9.05,0,10.9,.2,6.3,G);
+ for(const sd of [-1,1]){B.box(2.6,7.8,sd*3.02,8.4,.8,.05,M.glass);}
+ for(let x=-1;x<=7;x+=2)B.box(x,9.35,0,.8,.4,1.6,D);
+ B.box(-3.0,7.5,-3.5,2.6,2.2,2.4,Y);B.box(-4.32,7.7,-3.5,.05,1.2,2.0,M.glass);B.box(-3.0,8.7,-3.5,2.8,.12,2.6,G);
+ // counterweight
+ B.box(16.8,8.5,0,10.4,4.0,11.6,C);B.box(16.8,10.65,0,10.6,.3,11.8,G);
+ for(let i=0;i<4;i++)B.box(12.3+i*3,8.5,0,.12,4.05,11.65,M.dark);
+ // rear receiving hopper
+ B.frust(9.8,8.0,0,1.9,1.8,M.dark);
+ // boom: pivot + rear section + boom truss
+ const PIV=-4.0,H0=10.7,TIP=-41.7,RISE=5.3,nb=12,sd=(PIV-TIP)/nb;
+ const hAt=x=>H0+(PIV-x)*RISE/(PIV-TIP);
+ // rear (landing) section on posts
+ trussBox(B,[9.8,H0-1.1,0],[PIV,H0-1.1,0],4.4,2.2,3.2,Y);
+ B.beam([9.8,H0+.2,0],[PIV,H0+.2,0],2.0,.2,M.belt);
+ for(const x of [8.5,3,-1.5])for(const sg of [-1,1])B.beam([x,6.3,sg*2.2],[x,H0-1.1,sg*2.2],.4,.4,Y);
+ // main boom lattice following the luffing slope
+ const nodeH=i=>hAt(PIV-i*sd);
+ trussBox(B,[PIV,H0-1.1,0],[TIP,H0+RISE-1.1,0],4.4,2.2,sd,Y);
+ B.beam([PIV,H0+.2,0],[TIP,H0+RISE+.2,0],2.0,.2,M.belt);
+ for(const sg of [-1,1]){
+  const t=sg*3.0;B.beam([PIV,H0-.9,t],[TIP,H0+RISE-.9,t],1.0,.07,M.light);
+  const tr=sg*3.45;B.beam([PIV,H0+.2,tr],[TIP,H0+RISE+.2,tr],.05,.05,M.yellowD);
+  for(let i=0;i<=nb;i++){const x=PIV-i*sd,h=nodeH(i);B.beam([x,h-.9,tr],[x,h+.2,tr],.05,.05,M.yellowD);B.beam([x,h-.95,sg*2.2],[x,h-.9,t],.08,.08,M.steel);}
+ }
+ // idler frames on boom belt
+ for(let i=0;i<nb*2;i++){const x=PIV-(i+.5)*sd/2;const h=hAt(x)+.38;B.beam([x,h,-1.0],[x,h,1.0],.12,.1,M.light);}
+ // boom head
+ B.box(TIP-.5,hAt(TIP)+.4,0,3.0,2.2,2.8,D);B.cyl([TIP-.3,hAt(TIP)+.3,-1.2],[TIP-.3,hAt(TIP)+.3,1.2],.9,G);
+ // A-frame mast + ties
+ const apex=[-.5,28.5,0];
+ for(const sg of [-1,1]){
+  B.beam([1.6,6.3,sg*2.6],[apex[0],apex[1],sg*.55],.7,.7,Y);
+  for(const f of [.33,.62]){const x=1.6+(apex[0]-1.6)*f,h=6.3+(apex[1]-6.3)*f,t=sg*(2.6+(.55-2.6)*f);B.beam([x,h,t],[x,h,-t],.3,.3,M.yellowD);}
+ }
+ B.box(apex[0],apex[1]+.5,0,1.8,1.0,1.8,G);B.cyl([apex[0],apex[1]+.9,-.9],[apex[0],apex[1]+.9,.9],.45,D);
+ for(const sg of [-1,1]){
+  for(const i of [4,8,12]){const x=PIV-i*sd,h=nodeH(i)+1.1;B.cyl([apex[0],apex[1],sg*.5],[x,h,sg*2.2],.09,M.dark);}
+  B.cyl([apex[0],apex[1],sg*.5],[22.6,11.0,sg*3.0],.11,M.dark);
+  B.cyl([apex[0],apex[1],sg*.5],[10.5,H0+1.1,sg*2.2],.09,M.dark);
+ }
+ // access ladder/stairs to deck
+ B.beam([-3.7,6.3,4.2],[-6.3,.6,4.2],.9,.1,M.light);
+}
+function bBridge(B,it,cx){
+ const hd=cx.dT+3.4;
+ gallery(B,cx,{ax:-44.7,ay:0,bx:6.76,by:0,w:3.2,d:2.2,hd,seg:3.2,belt:true,beltW:2.0,walk:[1],legEvery:12.9,mat:M.steel,legMat:M.blue,cover:[[6,46]]});
+ B.box(5.6,hd+.6,0,2.4,1.2,3.6,M.dark);B.box(-44.2,hd+.9,0,1.6,1.8,2.8,M.dark);
+}
+function bTripper(B,it,cx){
+ const hr=cx.dT+.4, X0=-6.6,X1=49.3, Y=M.yellow;
+ for(const ly of [-3.35,3.35]){B.beam([X0,hr,ly],[X1,hr,ly],.2,.24,M.rail);
+  for(let x=X0+2;x<X1;x+=8){const g=ground(...cx.W(x,ly))-cx.Yb;B.beam([x,Math.min(g,hr-.5)-.2,ly],[x,hr-.2,ly],.4,.4,M.conc);}}
+ for(let x=X0+1;x<X1;x+=2)B.box(x,hr-.18,0,.3,.16,8.0,M.dark);
+ // wheel bogies
+ for(const x of [-3,2,10.5,14,19.5,23.5,30.5,34,40,44.5,48])for(const ly of [-3.35,3.35])B.box(x,hr+.5,ly,1.8,.9,.6,M.dark);
+ // head frame under link bridge
+ B.box(2.4,hr+1.5,0,12.4,.5,7.0,M.grey);for(const ly of [-3.2,3.2])B.box(2.4,hr+2.4,ly,12.4,1.4,.3,Y);
+ // main car lattice
+ trussBox(B,[8.5,hr+1.0,0],[32.4,hr+1.0,0],6.6,2.4,3.0,Y,true);
+ B.box(20.5,hr+1.1,0,23.9,.14,6.6,M.grey);
+ B.beam([8.8,hr+3.6,0],[32.4,hr+3.6,0],1.8,.35,M.belt);
+ B.beam([8.5,hr+4.0,-3.2],[32.4,hr+4.0,-3.2],.05,.05,M.yellowD);B.beam([8.5,hr+4.0,3.2],[32.4,hr+4.0,3.2],.05,.05,M.yellowD);
+ // portal gantry and winch
+ for(const ly of [-3.35,3.35]){B.beam([32,hr+.3,ly],[32,hr+8.2,ly],.7,.7,Y);B.beam([32,hr+.3,ly],[29,hr+4.4,ly*.3],.25,.25,M.yellowD);}
+ B.beam([32,hr+8.2,-3.35],[32,hr+8.2,3.35],.8,.8,Y);B.box(32,hr+8.9,0,1.4,.9,2.4,M.dark);
+ B.box(24.5,hr+4.8,0,2.1,1.2,1.6,M.dark);B.cyl([22.6,hr+5.2,-.7],[22.6,hr+5.2,.7],.55,M.grey);
+ // trailing section
+ trussBox(B,[32.4,hr+1.0,0],[49.3,hr+1.0,0],4.0,1.4,3.0,M.steel);
+ B.beam([32.4,hr+2.55,0],[49.3,hr+2.55,0],1.8,.2,M.belt);
+ B.box(46.6,hr+2.4,0,2.1,1.6,3.0,M.dark);
+}
+function bHead(B,it,cx){
+ const hd=cx.dT+2.6,x0=it.x0,x1=it.x1,cy=4.16;
+ const xs=Math.max(x0,4.5);
+ const g=gallery(B,cx,{ax:xs,ay:cy,bx:x1-.7,by:cy,w:2.9,d:1.5,hd,seg:2.2,belt:true,beltW:2.0,walk:[-1,1],legEvery:6.2,mat:M.steel,legMat:M.blue,cover:[[ (x1-xs)*.35,(x1-xs)*.92 ]]});
+ if(x0<=1.8){
+  B.box(3.1,hd+1.4,cy,2.8,2.8,3.8,M.grey);B.box(3.1,hd+2.85,cy,3.0,.15,4.0,M.light);
+  for(const sg of [-1,1])B.box(2.9,hd+.8,cy+sg*2.6,1.5,1.0,1.0,M.yellow);
+  B.cyl([2.3,hd+1.5,cy-1.3],[2.3,hd+1.5,cy+1.3],.65,M.dark);
+  for(const sx of [1.8,4.4])for(const sg of [-1,1]){const w=cx.W(sx,cy+sg*1.9),gg=ground(w[0],w[1])-cx.Yb;B.beam([sx,gg-.25,cy+sg*1.9],[sx,hd,cy+sg*1.9],.45,.45,M.blue);B.box(sx,gg-.25,cy+sg*1.9,1.0,.3,1.0,M.conc);}
+  B.beam([2.3,hd+.1,cy],[xs+.2,hd+.1,cy],2.2,.12,M.steel);
+ }
+ B.box(x1-.4,hd+.9,cy,1.2,1.8,3.0,M.dark);
+ for(const sg of [-1,1]){
+  const ly=cy+sg*3.35;const e=cx.W(x1-3,ly),gg=ground(e[0],e[1])-cx.Yb;
+  B.beam([x1-3.2,hd+.12,ly],[x1-.2,gg+.05,ly],.9,.1,M.light);
+  B.beam([x1-3.2,hd+1.1,ly+sg*.45],[x1-.2,gg+1.05,ly+sg*.45],.05,.05,M.yellowD);
+ }
+}
+function bTruss(B,it,cx){
+ const b=it.b,cy=(b[2]+b[3])/2,hd=cx.dT+2.6;
+ gallery(B,cx,{ax:b[0],ay:cy,bx:b[1],by:cy,w:3.7,d:2.0,hd,seg:2.4,belt:true,beltW:1.8,walk:false,planX:true,legEvery:12,mat:M.steel,legMat:M.blue});
+}
+function bTail(B,it,cx){
+ const hd=cx.dT+.9,cy=2.4;
+ gallery(B,cx,{ax:.9,ay:cy,bx:10.4,by:cy,w:2.4,d:.9,hd,seg:1.9,belt:true,beltW:1.6,walk:false,legEvery:3.8,mat:M.steel,legMat:M.blue});
+ B.frust(7.4,hd+1.9,cy,1.6,1.7,M.red);B.box(7.4,hd+3.0,cy,3.0,.12,3.0,M.red);
+ B.cyl([.9,hd+.65,cy-1.2],[.9,hd+.65,cy+1.2],.5,M.dark);
+ B.box(10.7,hd+.8,cy,1.3,1.6,3.6,M.grey);
+ for(const sg of [-1,1]){B.box(5,hd+.55,cy+sg*1.5,7.4,.5,.3,M.yellow);B.box(5,hd+1.1,cy+sg*1.5,7.4,.05,.05,M.yellowD);}
+}
+function bTakeup(B,it,cx){
+ const hd=cx.dT+1.3;
+ gallery(B,cx,{ax:2.6,ay:1.0,bx:6.55,by:35.3,w:2.6,d:1.1,hd,seg:2.2,belt:true,beltW:1.6,walk:false,legEvery:6,mat:M.steel,legMat:M.blue});
+ B.box(6.6,hd+1.6,35.8,2.2,3.0,2.4,M.grey);B.cyl([5.5,hd+.6,35.5],[7.7,hd+.6,35.5],.7,M.dark);
+ B.box(2.6,hd+.9,.6,1.6,1.8,2.2,M.dark);
+}
+function bStation(B,it,cx){
+ const hd=cx.dT+2.2,cxm=5.6,cym=4.2;
+ B.box(cxm,hd+.15,cym,10.6,.3,7.6,M.grey);
+ for(const sx of [-1,1])for(const sy of [-1,1]){
+  const x=cxm+sx*5,y=cym+sy*3.5,w=cx.W(x,y),gg=ground(w[0],w[1])-cx.Yb;
+  B.beam([x,gg-.25,y],[x,hd,y],.5,.5,M.blue);B.box(x,gg-.25,y,1.1,.3,1.1,M.conc);
+ }
+ for(const sy of [-1,1]){B.box(cxm,hd+.7,cym+sy*3.5,10.6,.8,.15,M.yellow);}
+ B.box(cxm+1.5,hd+1.2,cym,3.0,1.8,2.6,M.dark);B.box(cxm-2.4,hd+.8,cym+1.8,1.6,1.0,1.2,M.yellow);B.box(cxm-2.4,hd+.8,cym-1.8,1.6,1.0,1.2,M.yellow);
+ B.beam([.6,hd+.45,cym],[10.4,hd+.45,cym],1.6,.2,M.belt);
+}
+// ===== Rebuilt from KOCH GA drawings 3296762 (spreader), 3296791 (tripper car), crawler side-frame 3308891 =====
+function crawler(B,x,ly,L,H,W){
+ const R=H/2,hl=(L-H)/2;
+ B.box(x,H*.5,ly,L-H*.9,H*.46,W*.55,M.steel);
+ B.box(x,.14,ly,L-H*.9,.28,W,M.dark);B.box(x,H-.14,ly,L-H*.9,.28,W,M.dark);
+ for(const e of [-1,1]){B.cyl([x+e*hl,R,ly-W/2],[x+e*hl,R,ly+W/2],R,M.dark);B.cyl([x+e*hl,R,ly-W*.3],[x+e*hl,R,ly+W*.3],R*.55,M.grey);}
+ for(let k=-4;k<=4;k++){const px=x+k*(L-H*1.6)/8;B.cyl([px,.5,ly-W*.45],[px,.5,ly+W*.45],.45,M.grey);}
+ for(let k=-2;k<=2;k++){const px=x+k*(L-H)/5;B.cyl([px,H-.55,ly-W*.4],[px,H-.55,ly+W*.4],.28,M.grey);}
+}
+function bSpreader2(B,it,cx){
+ const Y=M.yellow,G=M.grey,D=M.dark,YD=M.yellowD;
+ for(const s of [-1,1])crawler(B,0,s*5.0,12.6,2.9,2.8);
+ B.box(0,3.6,0,9.5,1.0,12.6,Y);for(const s of [-1,1])B.box(0,3.2,s*5,9.5,.6,2.2,YD);
+ B.cyl([0,4.1,0],[0,5.2,0],2.3,D);
+ B.box(5,5.45,0,28,.4,7.4,G);for(const ly of [-3.5,-1.2,1.2,3.5])B.box(5,5.0,ly,28,.6,.45,Y);
+ for(const sg of [-1,1]){const t=sg*3.7;B.beam([-9,6.5,t],[19,6.5,t],.05,.05,YD);B.beam([-9,6.0,t],[19,6.0,t],.04,.04,YD);
+  for(let x=-9;x<=19;x+=2.8)B.beam([x,5.65,t],[x,6.5,t],.05,.05,YD);}
+ B.box(-1.5,7.4,0,8.5,3.2,6.4,Y);B.box(-1.5,9.1,0,8.8,.2,6.7,G);
+ for(const sd of [-1,1])B.box(-1.5,7.8,sd*3.22,6,.8,.05,M.glass);
+ B.box(-5.5,7.6,-3.2,2.6,2.2,2.2,Y);B.box(-6.82,7.8,-3.2,.05,1.2,1.8,M.glass);
+ // electrical container + counterweight on the 21 m rear boom
+ B.box(14.3,7.35,0,8.1,3.2,3.9,D);B.box(14.3,9.05,0,8.3,.2,4.1,G);
+ for(let k=0;k<6;k++)for(const sd of [-1,1])B.box(14.3,6.6+k*.45,sd*1.97,7.6,.1,.05,G);
+ B.box(19.6,7.3,0,2.6,3.6,6.4,M.conc);
+ B.frust(7.2,7.4,0,1.9,1.8,D);
+ // 40 m horizontal boom, tip 8.15 m above rail (drawing: boom is level, luffs +12/-7 deg)
+ const H=7.45,TIP=-40,PIV=-3;
+ trussBox(B,[PIV,H,0],[TIP,H,0],3.0,1.8,3.0,Y,true);
+ B.beam([PIV,H+.75,0],[TIP,H+.75,0],1.9,.2,M.belt);
+ for(let x=PIV;x>TIP;x-=1.5)B.beam([x,H+.9,-1.0],[x,H+.9,1.0],.12,.1,M.light);
+ for(const sg of [-1,1]){B.beam([PIV,H+.7,sg*2.1],[TIP,H+.7,sg*2.1],1.0,.07,M.light);
+  B.beam([PIV,H+1.8,sg*2.55],[TIP,H+1.8,sg*2.55],.05,.05,YD);
+  for(let x=PIV;x>=TIP;x-=3)B.beam([x,H+.75,sg*2.55],[x,H+1.8,sg*2.55],.05,.05,YD);}
+ B.box(TIP-.4,H+.9,0,2.6,2.2,2.8,D);B.cyl([TIP-.3,H+.9,-1.3],[TIP-.3,H+.9,1.3],.9,G);
+ // mast (apex ~17 m) with two tie-rod pairs to the boom and rear stays
+ const ap=[-8.8,17,0];
+ for(const sg of [-1,1]){
+  B.beam([-2.5,5.6,sg*3.0],[ap[0],ap[1],sg*.5],.7,.7,Y);
+  for(const f of [.3,.6]){const x=-2.5+(ap[0]+2.5)*f,h=5.6+(ap[1]-5.6)*f,t=sg*(3.0-2.5*f);B.beam([x,h,t],[x,h,-t],.3,.3,YD);}
+  B.cyl([ap[0],ap[1],sg*.5],[-32.1,H+1.8,sg*1.5],.1,D);B.cyl([ap[0],ap[1],sg*.5],[-20.8,H+1.8,sg*1.5],.1,D);
+  B.cyl([ap[0],ap[1],sg*.5],[10.5,5.7,sg*3.0],.12,D);}
+ B.box(ap[0],ap[1]+.4,0,1.8,.9,1.8,G);B.cyl([ap[0],ap[1]+.9,-.9],[ap[0],ap[1]+.9,.9],.45,D);
+ B.beam([-5,5.5,4.5],[-7.2,.6,4.5],.9,.1,M.light);
+}
+// link conveyor: cable-stayed truss inclined 12 deg (drawing 3296762), high end at the spreader
+function bBridge2(B,it,cx){
+ const X0=-44.7,X1=6.76,hl=cx.dT+3.4,tn=Math.tan(12*Math.PI/180),hh=x=>hl+(X1-x)*tn;
+ trussBox(B,[X0,hh(X0),0],[X1,hl,0],3.4,2.2,3.0,M.steel,true);
+ B.beam([X0+.3,hh(X0+.3)+.9,0],[X1-.3,hh(X1-.3)+.9,0],2.0,.2,M.belt);
+ B.beam([X0+4,hh(X0+4)+2.0,0],[X1-6,hh(X1-6)+2.0,0],2.6,.1,M.light);
+ for(let s=X0+1;s<X1;s+=3)B.beam([s,hh(s)+1.0,-1.1],[s,hh(s)+1.0,1.1],.14,.12,M.light);
+ for(const sg of [-1,1]){const t=sg*2.25;
+  B.beam([X0,hh(X0)+.9,t],[X1,hh(X1)+.9,t],1.0,.07,M.light);
+  B.beam([X0,hh(X0)+2.0,sg*2.7],[X1,hh(X1)+2.0,sg*2.7],.05,.05,M.yellowD);
+  for(let s=X0;s<=X1;s+=3)B.beam([s,hh(s)+.9,sg*2.7],[s,hh(s)+2.0,sg*2.7],.05,.05,M.yellowD);}
+ const xm=-16,ap=[xm,hh(xm)+10,0];
+ for(const sg of [-1,1]){B.beam([xm,hh(xm)+.9,sg*1.8],[ap[0],ap[1],sg*.3],.45,.45,M.yellowD);
+  B.cyl([ap[0],ap[1],sg*.3],[X0+3,hh(X0+3)+2.2,sg*1.6],.08,M.dark);B.cyl([ap[0],ap[1],sg*.3],[X1-3,hh(X1-3)+2.2,sg*1.6],.08,M.dark);}
+ B.cyl([ap[0],ap[1]+.4,-.5],[ap[0],ap[1]+.4,.5],.35,M.dark);
+ for(const x of [X0+2.5,X1-4]){for(const sg of [-1,1]){const ly=sg*1.7,w=cx.W(x,ly),g=ground(w[0],w[1])-cx.Yb;
+  B.beam([x,g-.2,ly],[x,hh(x)-.2,ly],.5,.5,M.blue);B.box(x,g-.2,ly,1.2,.3,1.2,M.conc);}
+  B.beam([x,hh(x)-.5,-1.7],[x,hh(x)-.5,1.7],.3,.3,M.steel);}
+ B.box(5.6,hl+.6,0,2.4,1.2,3.6,M.dark);B.box(-44.2,hh(X0)+.9,0,1.6,1.8,2.8,M.dark);
+}
+// tripper car: previous frame + real bogie sets (2000 mm pitch) and 13.28 x 3.9 m container (drawing 3296791)
+function bTripper2(B,it,cx){
+ bTripper(B,it,cx);
+ const hr=cx.dT+.4,Y=M.yellow;
+ for(const x of [-5.6,-3.6,-1.6,.4,2.4,4.4,6.4,17.5,19.5,36.5,38.5,40.5,46,48])for(const ly of [-3.35,3.35])
+  for(const dx of [-.55,.55])B.cyl([x+dx,hr+.45,ly-.45],[x+dx,hr+.45,ly+.45],.42,M.grey);
+ for(const ly of [-3.1,3.1])B.box(21,hr+1.25,ly,55,.3,.3,M.steel);
+ for(let x=36.5;x<=48.5;x+=3)for(const sg of [-1,1])B.beam([x,hr+1.0,sg*1.8],[x,hr+3.0,sg*1.8],.35,.35,Y);
+ B.box(42.6,hr+4.6,0,13.28,3.0,3.9,M.dark);B.box(42.6,hr+6.2,0,13.5,.2,4.1,M.grey);
+ for(let k=0;k<6;k++)for(const sd of [-1,1])B.box(42.6,hr+3.7+k*.45,sd*1.97,12.6,.1,.05,M.grey);
+ B.box(25.5,hr+5.0,0,3.9,2.6,3.9,M.light);
+ B.frust(5.8,hr+3.4,0,1.3,1.2,M.dark);
+}
+// ===== OLC head end + tail end, rebuilt from "Technical Specifications for OLC Head End and Tail End" (KEY) =====
+function bHead2(B,it,cx){
+ const x0=it.x0,x1=it.x1,cy=4.16,h0=cx.dT+.4,full=x0<=1.8,xs=Math.max(x0,full?5.5:x0),xe=x1-.7;
+ const hb=x=>x>=6?h0+3.3+(31.4-x)*.106:h0+6.0+(6-x)*.15,inR=x=>x>=x0-.01&&x<=x1+.01,mid=(x0+x1)/2,bl=x1-x0;
+ B.box(mid,h0-.15,cy,bl,.3,7.6,M.grey);B.box(mid,h0-.55,cy,bl,.5,8.2,M.conc);
+ for(const sg of [-1,1])B.box(mid,h0+.1,cy+sg*3.7,bl,.5,.3,M.yellowD);
+ if(xe-xs>2){
+  trussBox(B,[xs,hb(xs)-1.2,cy],[xe,hb(xe)-1.2,cy],2.9,1.5,2.2,M.steel);
+  B.beam([xs,hb(xs)+.1,cy],[xe,hb(xe)+.1,cy],2.0,.18,M.belt);
+  for(let x=xs+.7;x<xe;x+=1.5){const h=hb(x)+.12;B.cyl([x,h,cy-.55],[x,h,cy+.55],.09,M.light);
+   for(const sg of [-1,1])B.cyl([x,h,cy+sg*.55],[x,h+.4,cy+sg*1.0],.09,M.light);}
+  for(const sg of [-1,1]){
+   B.beam([xs,hb(xs)-.4,cy+sg*2.0],[xe,hb(xe)-.4,cy+sg*2.0],1.0,.07,M.light);
+   B.beam([xs,hb(xs)+.7,cy+sg*2.45],[xe,hb(xe)+.7,cy+sg*2.45],.05,.05,M.yellowD);
+   for(let x=xs;x<=xe;x+=2)B.beam([x,hb(x)-.4,cy+sg*2.45],[x,hb(x)+.7,cy+sg*2.45],.05,.05,M.yellowD);}
+  const a=xs+(xe-xs)*.35,b=xs+(xe-xs)*.92;B.beam([a,hb(a)+.95,cy],[b,hb(b)+.95,cy],2.6,.1,M.light);
+  for(let x=Math.max(xs,7)+.5;x<xe-.5;x+=4)for(const sg of [-1,1]){const ly=cy+sg*1.7;
+   B.beam([x,h0,ly],[x,hb(x)-1.2,ly],.3,.3,M.steel);}
+ }
+ // two drive stations (front / back): 1250 mm drive pulley, gearbox, brake disc, motor under canopy
+ for(const xd of [10.5,24])if(inR(xd)){
+  B.cyl([xd,h0+2.0,cy-1.0],[xd,h0+2.0,cy+1.0],.625,M.dark);
+  for(const sg of [-1,1]){
+   B.box(xd,h0+1.9,cy+sg*1.65,1.5,1.7,.7,M.grey);
+   B.cyl([xd,h0+2.0,cy+sg*2.05],[xd,h0+2.0,cy+sg*2.15],.5,M.dark);
+   B.box(xd,h0+1.6,cy+sg*3.2,1.7,1.5,1.85,M.dark);B.box(xd,h0+2.5,cy+sg*3.2,1.8,.1,1.95,M.light);
+   B.box(xd+1.4,h0+.9,cy+sg*1.65,.8,1.0,.6,M.yellow);
+   B.beam([xd,h0+.2,cy+sg*1.65],[xd,h0+1.3,cy+sg*1.65],.3,.3,M.yellowD);}
+ }
+ // take-up: 800 mm tension pulley, winch and wire ropes
+ if(inR(14)&&inR(18)){B.cyl([14.5,h0+3.5,cy-1.0],[14.5,h0+3.5,cy+1.0],.4,M.dark);
+  B.box(18,h0+.9,cy,2.2,1.4,1.6,M.grey);B.beam([14.5,h0+3.5,cy],[17.4,h0+1.4,cy],.06,.06,M.dark);}
+ if(full){ // discharge tower, 1250 mm head pulley, chute, inclined strut
+  for(const x of [.4,5.4])for(const sg of [-1,1])B.beam([x,h0,cy+sg*2.1],[x,h0+7.2,cy+sg*2.1],.45,.45,M.steel);
+  for(const h of [2.6,5.0])for(const sg of [-1,1])B.beam([.4,h0+h,cy+sg*2.1],[5.4,h0+h,cy+sg*2.1],.2,.2,M.steel);
+  B.box(2.9,h0+7.9,cy,5.8,2.2,4.8,M.grey);B.box(2.9,h0+9.05,cy,6.0,.15,5.0,M.light);
+  B.cyl([3.0,h0+6.5,cy-1.1],[3.0,h0+6.5,cy+1.1],.625,M.dark);
+  B.box(2.9,h0+5.5,cy,6.6,.12,6.2,M.light);
+  B.frust(1.2,h0+3.2,cy,1.7,2.6,M.dark);B.beam([1.2,h0+2.0,cy],[-1.4,h0-.1,cy],1.5,.15,M.dark);
+  for(const sg of [-1,1])B.beam([2.8,h0+5.2,cy+sg*2.1],[10.0,h0+.3,cy+sg*2.1],.35,.35,M.steel);
+ }
+ B.box(x1-.4,hb(x1-.4)-.2,cy,1.2,1.8,3.0,M.dark);
+ for(const sg of [-1,1]){const ly=cy+sg*3.35;B.beam([x1-3.2,h0+2.2,ly],[x1-.2,h0+.2,ly],.9,.1,M.light);}
+}
+function bTail2(B,it,cx){
+ const cy=2.4,hs=cx.dT+.45;
+ for(const sg of [-1,1]){const ly=cy+sg*1.75;
+  B.box(5.2,hs-.15,ly,9.6,.3,1.3,M.grey);B.beam([10.0,hs-.15,ly],[11.2,hs+.3,ly],1.3,.3,M.grey);
+  B.beam([.4,hs-.15,ly],[-.8,hs+.3,ly],1.3,.3,M.grey);
+  for(const x of [1,3.5,6,8.5,10.5]){const w=cx.W(x,ly),g=ground(w[0],w[1])-cx.Yb;if(hs>g)B.box(x,(g+hs)/2-.1,ly,.9,hs-g,.8,M.conc);}
+ }
+ trussBox(B,[1.0,hs+.1,cy],[10.2,hs+.1,cy],3.4,.9,1.9,M.steel);
+ B.beam([.9,hs+1.1,cy],[10.4,hs+1.1,cy],1.8,.12,M.belt);
+ for(let x=2.4;x<=9;x+=.9){const h=hs+1.2;B.cyl([x,h,cy-.5],[x,h,cy+.5],.1,M.blue);
+  for(const sg of [-1,1]){B.cyl([x,h,cy+sg*.5],[x,h+.4,cy+sg*.95],.1,M.blue);B.beam([x,hs+.9,cy+sg*1.05],[x,h+.2,cy+sg*.95],.08,.08,M.steel);}}
+ for(let x=2;x<=9;x+=2.5)B.cyl([x,hs+.45,cy-.95],[x,hs+.45,cy+.95],.11,M.dark);
+ B.cyl([.9,hs+.75,cy-1.0],[.9,hs+.75,cy+1.0],.4,M.dark);
+ for(const sg of [-1,1])for(const x of [.2,1.6])B.beam([x,hs+.1,cy+sg*1.45],[x,hs+2.0,cy+sg*1.45],.06,.06,M.light);
+ B.frust(7.4,hs+2.6,cy,1.6,1.7,M.red);B.box(7.4,hs+3.7,cy,3.0,.12,3.0,M.red);
+ // tension anchor: rod to two concrete blocks
+ B.box(12.6,hs+.9,cy,1.5,2.2,2.6,M.conc);B.box(16.6,hs+.9,cy,1.5,2.2,2.6,M.conc);
+ B.cyl([10.8,hs+.5,cy],[11.8,hs+.5,cy],.06,M.steel);B.cyl([13.4,hs+.9,cy],[15.8,hs+.9,cy],.05,M.steel);
+}
+const FAM={
+ spreader:{name:'اسبريدر',fn:bSpreader2,bounds:()=>[-41.7,23.9,-6.4,6.4],label:30,lw:22},
+ bridge:{name:'كوبري ناقل رابط',fn:bBridge2,bounds:()=>[-44.7,6.8,-1.6,1.6],label:9,lw:14},
+ tripper:{name:'تريبر',fn:bTripper2,bounds:()=>[-6.6,49.3,-3.8,3.8],label:12,lw:14},
+ head:{name:'هيد اند',fn:bHead2,bounds:it=>[it.x0,it.x1,0,8.32],label:9,lw:12},
+ truss:{name:'جملون',fn:bTruss,bounds:it=>it.b,label:0,lw:10},
+ tail:{name:'تل اند',fn:bTail2,bounds:()=>[0,11.8,0,4.8],label:7,lw:10},
+ takeup:{name:'ناقل شد',fn:bTakeup,bounds:()=>[0,9.1,0,37.2],label:7,lw:12},
+ station:{name:'محطة صغيرة',fn:bStation,bounds:()=>[0,11.2,0,8.3],label:8,lw:12}
+};
+function label(text,w){
+ const c=document.createElement('canvas');c.width=512;c.height=128;const x=c.getContext('2d');
+ x.fillStyle='rgba(20,15,10,.82)';x.fillRect(0,0,512,128);x.strokeStyle='#ffcf8a';x.lineWidth=5;x.strokeRect(3,3,506,122);
+ x.fillStyle='#ffe2b0';x.font='bold 64px Segoe UI,Tahoma,Arial,sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText(text,256,68);
+ const t=new THREE.CanvasTexture(c);const s=new THREE.Sprite(new THREE.SpriteMaterial({map:t,transparent:true,depthWrite:false}));
+ s.scale.set(w,w/4,1);return s;
+}
+const root=new THREE.Group();root.name='المعدات والحفارات';
+const families={};const stats={};const counters={};
+for(const k of Object.keys(FAM)){const g=new THREE.Group();g.name=FAM[k].name;families[k]=g;root.add(g);stats[k]=0;counters[k]=0;}
+const report=[];
+for(const it of DATA){
+ const F=FAM[it.t];if(!F)continue;
+ const th=it.rot*DEG,c=Math.cos(th),s=Math.sin(th);
+ const W=(lx,ly)=>{const X=it.mx*lx,Y=it.my*ly;return[it.E+X*c-Y*s,it.N+X*s+Y*c];};
+ const bd=F.bounds(it);let mn=1e9,mx=-1e9,sum=0,cnt=0;
+ const nxs=Math.max(2,Math.ceil((bd[1]-bd[0])/4)),nys=Math.max(2,Math.ceil((bd[3]-bd[2])/4));
+ for(let i=0;i<=nxs;i++)for(let j=0;j<=nys;j++){
+  const w=W(bd[0]+(bd[1]-bd[0])*i/nxs,bd[2]+(bd[3]-bd[2])*j/nys),h=ground(w[0],w[1]);
+  mn=Math.min(mn,h);mx=Math.max(mx,h);sum+=h;cnt++;
+ }
+ let Yb=mn,dT=mx-mn;
+ if(it.t==='spreader'){ // crawlers carry the machine: seat on their mean ground level
+  let a=0,n=0;for(const ly of [-6,-5,-4])for(const lx of [-6.5,-3,0,3,6.5])for(const sg of [1,-1]){const w=W(lx,sg*Math.abs(ly));a+=ground(w[0],w[1]);n++;}
+  Yb=a/n;dT=0;
+ }
+ if(it.t==='tripper'){Yb=mn;dT=mx-mn;}
+ const cx={W,Yb,dT,minT:mn,maxT:mx,meanT:sum/cnt};
+ const B=MergeBuilder();F.fn(B,it,cx);
+ const g=new THREE.Group();g.name=F.name+' '+(++counters[it.t]);
+ B.build(g);g.position.set(it.E-CX,Yb,-(it.N-CY));g.rotation.y=th;g.scale.set(it.mx,1,it.my);
+ g.userData={family:it.t,E:it.E,N:it.N,baseElevation:Yb};
+ families[it.t].add(g);stats[it.t]++;
+ if(false&&F.label){const sp=label(F.name+' '+counters[it.t],F.lw);const c0=W((bd[0]+bd[1])/2,(bd[2]+bd[3])/2);
+  sp.position.set(c0[0]-CX,Yb+F.label+ (it.t==='spreader'?0:dT),-(c0[1]-CY));families[it.t].add(sp);}
+ report.push({t:it.t,E:it.E,N:it.N,base:+Yb.toFixed(2),terrainMin:+mn.toFixed(2),terrainMax:+mx.toFixed(2)});
+}
+return {group:root,families,stats,names:Object.fromEntries(Object.entries(FAM).map(([k,v])=>[k,v.name])),report,M};
+}
+
+function eqGround(E,N){
+ const xr=E-CX,nr=N-CY,h=operationsHeight(xr,nr);
+ if(h!==null)return h;
+ const u=Math.round((xr-(XMIN-CX))/(XMAX-XMIN)*(NX-1)),v=Math.round((nr-(YMIN-CY))/(YMAX-YMIN)*(NY-1));
+ for(let r=1;r<=60;r++){
+  let best=null,bd=Infinity;
+  for(let dj=-r;dj<=r;dj++)for(let di=-r;di<=r;di++){
+   if(Math.max(Math.abs(di),Math.abs(dj))!==r)continue;
+   const i=u+di,j=v+dj;if(i<0||j<0||i>=NX||j>=NY)continue;
+   const k=j*NX+i;if(!maskCurrent[k])continue;
+   const d=di*di+dj*dj;if(d<bd){bd=d;best=elevCurrentRaw[k];}
+  }
+  if(best!==null)return best;
+ }
+ return surveyFloor;
+}
+const equipment=buildEquipment({THREE,CX,CY,ground:eqGround,data:EQUIPMENT_DATA});
+scene.add(equipment.group);
+(function(){
+ const box=document.getElementById('equipFamilies'),all=document.getElementById('chkEquipAll');
+ const refresh=()=>{operationsRevision++;renderer.shadowMap.needsUpdate=true;sun.shadow.needsUpdate=true;};
+ for(const fam of Object.keys(equipment.families)){
+  const n=equipment.stats[fam];if(!n)continue;
+  const lab=document.createElement('label');lab.className='chkRow';
+  lab.innerHTML='<input type="checkbox" id="chkEq_'+fam+'" checked> '+equipment.names[fam]+' <span class="label">('+n+')</span>';
+  box.appendChild(lab);
+  lab.firstChild.addEventListener('change',e=>{equipment.families[fam].visible=e.target.checked;refresh();});
+ }
+ all.addEventListener('change',()=>{equipment.group.visible=all.checked;refresh();});
+ refresh();
+})();
 
 applyMode();
 setLoadingProgress(85,'جاري تجهيز الخطوط والعرض...');await loadingPaint();
